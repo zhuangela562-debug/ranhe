@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>测试 - 新增按钮</title>
+    <style>
+        body { font-family: sans-serif; padding: 40px; }
+        .btn { padding: 10px 20px; background: #1D9E75; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        .modal-mask { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:2000; }
+        .modal-mask.show { display: flex !important; justify-content: center; align-items: center; }
+        .modal-box { background: white; padding: 30px; border-radius: 10px; min-width: 300px; }
+    </style>
+</head>
+<body>
+
+    <button class="btn" onclick="openModal()">➕ 新增预约（测试）</button>
+
+    <div class="modal-mask" id="modalMask">
+        <div class="modal-box">
+            <h3>新增预约</h3>
+            <p>弹窗已打开！</p>
+            <button onclick="closeModal()">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            alert('openModal 被调用了！');
+            var mask = document.getElementById('modalMask');
+            if (!mask) { alert('找不到 modalMask！'); return; }
+            mask.classList.add('show');
+            alert('已添加 show 类，display 应该变成 flex');
+        }
+        function closeModal() {
+            var mask = document.getElementById('modalMask');
+            if (mask) mask.classList.remove('show');
+        }
+        alert('JS 已加载，openModal 函数已定义');
+    </script>
+
+</body>
+</html>

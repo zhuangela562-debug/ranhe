@@ -10,11 +10,9 @@
 
         .header { background: linear-gradient(135deg, #1D9E75 0%, #25b885 100%); color: white; padding:0 30px; height: 60px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
         .header h1 { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .header .user-info { display: flex; align-items: center; gap: 10px; }
         .logout-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; }
 
         .sidebar { width: 250px; background: white; height: calc(100vh - 60px); position: fixed; top: 60px; left: 0; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
-        .sidebar-menu { padding: 20px 0; }
         .menu-item { padding: 15px 25px; display: flex; align-items: center; gap: 12px; color: #666; text-decoration: none; border-left: 3px solid transparent; transition: all 0.3s; }
         .menu-item:hover { background: #f0f9f4; color: #1D9E75; border-left-color: #1D9E75; }
         .menu-item.active { background: #f0f9f4; color: #1D9E75; border-left-color: #1D9E75; font-weight: 600; }
@@ -98,16 +96,21 @@
 
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; font-family: inherit;
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%; padding: 10px 15px;
+            border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 14px; outline: none; font-family: inherit;
         }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #1D9E75; }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus { border-color: #1D9E75; }
         .form-group textarea { resize: vertical; min-height: 100px; }
     </style>
 </head>
 <body>
 
-    <!-- 顶部栏 -->
     <div class="header">
         <h1>
             <img src="logo.png" alt="然合教育" style="height:36px;width:36px;vertical-align:middle;margin-right:8px;border-radius:50%;object-fit:cover;">
@@ -119,7 +122,6 @@
         </div>
     </div>
 
-    <!-- 侧边栏 -->
     <div class="sidebar">
         <div class="sidebar-menu">
             <a href="dashboard.html" class="menu-item"><span>📊</span><span>仪表板</span></a>
@@ -132,14 +134,13 @@
         </div>
     </div>
 
-    <!-- 主内容 -->
     <div class="main-content">
         <h2 class="page-title">预约管理</h2>
         <p class="page-subtitle">管理所有学生的预约信息</p>
 
         <div class="toolbar">
             <div class="search-box">
-                <input type="text" placeholder="搜索学生姓名、课程..." id="searchInput">
+                <input type="text" placeholder="搜索学生姓名、课程..." id="searchInput" oninput="doSearch()">
             </div>
             <div class="btn-group">
                 <button class="btn btn-primary" onclick="openModal('add')">➕ 新增预约</button>
@@ -204,7 +205,6 @@
         </div>
     </div>
 
-    <!-- 模态框 -->
     <div class="modal-mask" id="modalMask">
         <div class="modal-box">
             <div class="modal-header">
@@ -274,12 +274,33 @@
     </div>
 
     <script>
-        // ===== 所有函数都用 function 声明，确保兼容性和正确加载 =====
-
-        function logout() {
-            if (confirm('确定退出登录？')) window.location.href = 'login.html';
+        /* ===== 搜索 ===== */
+        function doSearch() {
+            var term = document.getElementById('searchInput').value.toLowerCase();
+            var rows = document.querySelectorAll('#apptTable tr');
+            for (var i = 0; i < rows.length; i++) {
+                rows[i].style.display = rows[i].textContent.toLowerCase().indexOf(term) !== -1 ? '' : 'none';
+            }
         }
 
+        /* ===== 按状态筛选 ===== */
+        function filterByStatus(status, btn) {
+            var tabs = document.querySelectorAll('.filter-tab');
+            for (var i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            if (btn) btn.classList.add('active');
+            var rows = document.querySelectorAll('#apptTable tr');
+            for (var i = 0; i < rows.length; i++) {
+                if (status === 'all') {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = rows[i].getAttribute('data-status') === status ? '' : 'none';
+                }
+            }
+        }
+
+        /* ===== 打开模态框 ===== */
         function openModal(mode, id) {
             var mask = document.getElementById('modalMask');
             if (!mask) { alert('页面未就绪'); return; }
@@ -297,11 +318,23 @@
             mask.classList.add('show');
         }
 
+        /* ===== 关闭模态框 ===== */
         function closeModal() {
             var mask = document.getElementById('modalMask');
             if (mask) mask.classList.remove('show');
         }
 
+        /* ===== 点击遮罩关闭 ===== */
+        (function() {
+            var maskEl = document.getElementById('modalMask');
+            if (maskEl) {
+                maskEl.addEventListener('click', function(e) {
+                    if (e.target === this) closeModal();
+                });
+            }
+        })();
+
+        /* ===== 来源切换 ===== */
         function onSourceChange() {
             var sel = document.getElementById('f_source');
             var grp = document.getElementById('f_customGroup');
@@ -312,6 +345,7 @@
             }
         }
 
+        /* ===== 清空表单 ===== */
         function clearForm() {
             var ids = ['f_student','f_course','f_teacher','f_date','f_time','f_source','f_customSource','f_notes'];
             for (var i = 0; i < ids.length; i++) {
@@ -321,6 +355,7 @@
             document.getElementById('f_customGroup').style.display = 'none';
         }
 
+        /* ===== 填入演示数据 ===== */
         function fillDemo(id) {
             document.getElementById('f_student').value = id === 1 ? '张三' : '李四';
             document.getElementById('f_course').value = id === 1 ? 'ABA训练' : 'NET自然情境教学';
@@ -332,6 +367,7 @@
             document.getElementById('f_notes').value = '';
         }
 
+        /* ===== 保存 ===== */
         function saveAppt() {
             var ok = true;
             var reqIds = ['f_student','f_course','f_teacher','f_date','f_time','f_source'];
@@ -349,28 +385,19 @@
             closeModal();
         }
 
+        /* ===== 删除 ===== */
         function deleteAppt(id) {
             if (confirm('确定删除这条预约记录？')) {
                 alert('删除成功！（演示模式）');
             }
         }
 
-        function filterByStatus(status, btn) {
-            var tabs = document.querySelectorAll('.filter-tab');
-            for (var i = 0; i < tabs.length; i++) {
-                tabs[i].classList.remove('active');
-            }
-            if (btn) btn.classList.add('active');
-            var rows = document.querySelectorAll('#apptTable tr');
-            for (var i = 0; i < rows.length; i++) {
-                if (status === 'all') {
-                    rows[i].style.display = '';
-                } else {
-                    rows[i].style.display = rows[i].getAttribute('data-status') === status ? '' : 'none';
-                }
-            }
+        /* ===== 退出登录 ===== */
+        function logout() {
+            if (confirm('确定退出登录？')) window.location.href = 'login.html';
         }
 
+        /* ===== 分页 ===== */
         var currentPage = 1;
         var maxPage = 10;
         function changePage(dir) {
@@ -391,28 +418,6 @@
                 }
             }
         }
-
-        // ===== DOM 加载完成后绑定事件 =====
-        document.addEventListener('DOMContentLoaded', function() {
-            // 搜索
-            var searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    var term = this.value.toLowerCase();
-                    var rows = document.querySelectorAll('#apptTable tr');
-                    for (var i = 0; i < rows.length; i++) {
-                        rows[i].style.display = rows[i].textContent.toLowerCase().indexOf(term) !== -1 ? '' : 'none';
-                    }
-                });
-            }
-            // 点击遮罩关闭
-            var maskEl = document.getElementById('modalMask');
-            if (maskEl) {
-                maskEl.addEventListener('click', function(e) {
-                    if (e.target === this) closeModal();
-                });
-            }
-        });
     </script>
 </body>
 </html>
