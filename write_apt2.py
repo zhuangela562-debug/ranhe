@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+import codecs
+
+html = '''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -104,7 +106,7 @@ body { font-family:'Microsoft YaHei',Arial,sans-serif; background:#F5F5F5; color
                         <div class="action-buttons">
                             <button class="action-btn view" onclick="openModal('view',1)">查看</button>
                             <button class="action-btn edit" onclick="openModal('edit',1)">编辑</button>
-                            <button class="action-btn delete" onclick="deleteApptRow(this)">删除</button>
+                            <button class="action-btn delete" onclick="deleteAppt(1)">删除</button>
                         </div>
                     </td>
                 </tr>
@@ -116,7 +118,7 @@ body { font-family:'Microsoft YaHei',Arial,sans-serif; background:#F5F5F5; color
                         <div class="action-buttons">
                             <button class="action-btn view" onclick="openModal('view',2)">查看</button>
                             <button class="action-btn edit" onclick="openModal('edit',2)">编辑</button>
-                            <button class="action-btn delete" onclick="deleteApptRow(this)">删除</button>
+                            <button class="action-btn delete" onclick="deleteAppt(2)">删除</button>
                         </div>
                     </td>
                 </tr>
@@ -172,26 +174,26 @@ body { font-family:'Microsoft YaHei',Arial,sans-serif; background:#F5F5F5; color
                 <label>用户来源</label>
                 <select id="f_source" onchange="onSourceChange()">
                     <option value="">请选择</option>
-                    <option value="大众点评">大众点评</option>
-                    <option value="高德">高德</option>
-                    <option value="残联">残联</option>
-                    <option value="抖音">抖音</option>
-                    <option value="公众号">公众号</option>
-                    <option value="__custom__">自定义</option>
+                    <option value="\u5927\u4f17\u70b9\u8bc4">\u5927\u4f17\u70b9\u8bc4</option>
+                    <option value="\u9ad8\u5fb7">\u9ad8\u5fb7</option>
+                    <option value="\u6b8b\u8054">\u6b8b\u8054</option>
+                    <option value="\u6296\u97f3">\u6296\u97f3</option>
+                    <option value="\u516c\u4f17\u53f7">\u516c\u4f17\u53f7</option>
+                    <option value="__custom__">\u81ea\u5b9a\u4e49</option>
                 </select>
             </div>
             <div class="form-group" id="f_customGroup" style="display:none;">
-                <label>自定义来源</label>
-                <input type="text" id="f_customSource" placeholder="请输入来源名称">
+                <label>\u81ea\u5b9a\u4e49\u6765\u6e90</label>
+                <input type="text" id="f_customSource" placeholder="\u8bf7\u8f93\u5165\u6765\u6e90\u540d\u79f0">
             </div>
             <div class="form-group">
-                <label>备注</label>
+                <label>\u5907\u6ce8</label>
                 <textarea id="f_notes"></textarea>
             </div>
         </div>
         <div class="modal-footer">
-            <button onclick="closeModal()" style="padding:8px 20px;border:1px solid #e0e0e0;background:white;cursor:pointer;font-family:inherit;">取消</button>
-            <button class="btn btn-primary" onclick="saveAppt()">保存</button>
+            <button onclick="closeModal()" style="padding:8px 20px;border:1px solid #e0e0e0;background:white;cursor:pointer;font-family:inherit;">\u53d6\u6d88</button>
+            <button class="btn btn-primary" onclick="saveAppt()">\u4fdd\u5b58</button>
         </div>
     </div>
 </div>
@@ -200,7 +202,7 @@ body { font-family:'Microsoft YaHei',Arial,sans-serif; background:#F5F5F5; color
 function openModal(mode, id) {
     var m = document.getElementById("modalMask");
     if (!m) { alert("no mask"); return; }
-    document.getElementById("modalTitle").textContent = (mode === "add") ? "新增预约" : "查看预约";
+    document.getElementById("modalTitle").textContent = (mode === "add") ? "\u65b0\u589e\u9884\u7ea6" : "\u67e5\u770b\u9884\u7ea6";
     m.classList.add("show");
 }
 function closeModal() {
@@ -217,75 +219,9 @@ function onSourceChange() {
     var sel = document.getElementById("f_source");
     document.getElementById("f_customGroup").style.display = (sel.value === "__custom__") ? "" : "none";
 }
-function saveAppt() {
-    var student = document.getElementById("f_student").value.trim();
-    var course = document.getElementById("f_course").value;
-    var teacher = document.getElementById("f_teacher").value;
-    var date = document.getElementById("f_date").value;
-    var time = document.getElementById("f_time").value;
-    var source = document.getElementById("f_source").value;
-    var customSource = document.getElementById("f_customSource").value.trim();
-
-    if (!student) { alert("请输入学生姓名"); return; }
-    if (!course) { alert("请选择课程类型"); return; }
-    if (!teacher) { alert("请选择教师"); return; }
-    if (!date) { alert("请选择预约日期"); return; }
-    if (!time) { alert("请选择预约时间"); return; }
-    if (!source) { alert("请选择用户来源"); return; }
-
-    var finalSource = (source === "__custom__") ? customSource : source;
-    if (source === "__custom__" && !customSource) { alert("请输入自定义来源名称"); return; }
-
-    // 生成预约编号
-    var now = new Date();
-    var seq = document.querySelectorAll("#apptTable tr").length + 1;
-    var id = "#AP" + now.getFullYear() +
-        String(now.getMonth()+1).padStart(2,"0") +
-        String(now.getDate()).padStart(2,"0") +
-        String(seq).padStart(3,"0");
-
-    // 拼接时间
-    var fullTime = date + " " + time;
-
-    // 创建新行
-    var row = document.createElement("tr");
-    row.setAttribute("data-status", "pending");
-    row.innerHTML =
-        "<td>" + id + "</td>" +
-        "<td>" + student + "</td>" +
-        "<td>" + course + "</td>" +
-        "<td>" + teacher + "</td>" +
-        "<td>" + fullTime + "</td>" +
-        "<td>" + finalSource + "</td>" +
-        "<td><span class=\"status-badge pending\">待确认</span></td>" +
-        "<td><div class=\"action-buttons\">" +
-        "<button class=\"action-btn view\" onclick=\"openModal('view'," + seq + ")\">查看</button>" +
-        "<button class=\"action-btn edit\" onclick=\"openModal('edit'," + seq + ")\">编辑</button>" +
-        "<button class=\"action-btn delete\" onclick=\"deleteApptRow(this)\">删除</button>" +
-        "</div></td>";
-
-    document.getElementById("apptTable").appendChild(row);
-
-    // 清空表单并关闭弹窗
-    document.getElementById("f_student").value = "";
-    document.getElementById("f_course").value = "";
-    document.getElementById("f_teacher").value = "";
-    document.getElementById("f_date").value = "";
-    document.getElementById("f_time").value = "";
-    document.getElementById("f_source").value = "";
-    document.getElementById("f_customSource").value = "";
-    document.getElementById("f_customGroup").style.display = "none";
-    closeModal();
-}
-
-function deleteApptRow(btn) {
-    if (confirm("确定删除这条预约？")) {
-        btn.closest("tr").remove();
-    }
-}
-// 废弃函数，保留兼容
-function deleteAppt(id) { if(confirm("确定删除？")) alert("删除成功（演示）"); }
-function logout() { if(confirm("确定退出？")) window.location.href = "login.html"; }
+function saveAppt() { alert("\u4fdd\u5b58\u6210\u529f\uff08\u6f14\u793a\uff09"); closeModal(); }
+function deleteAppt(id) { if(confirm("\u786e\u5b9a\u5220\u9664\uff1f")) alert("\u5220\u9664\u6210\u529f\uff08\u6f14\u793a\uff09"); }
+function logout() { if(confirm("\u786e\u5b9a\u9000\u51fa\uff1f")) window.location.href = "login.html"; }
 function filterStatus(s, btn) {
     var tabs = document.querySelectorAll(".filter-tab");
     for (var i = 0; i < tabs.length; i++) { tabs[i].classList.remove("active"); }
@@ -296,25 +232,19 @@ function filterStatus(s, btn) {
     }
 }
 var currentPage = 1;
-function changePage(d) {
-    currentPage = Math.max(1, currentPage + d);
-    refreshPageButtons();
-}
-function goPage(n) {
-    currentPage = n;
-    refreshPageButtons();
-}
-function refreshPageButtons() {
+function changePage(d) { currentPage = Math.max(1, currentPage + d); refreshButtons(); }
+function goPage(n) { currentPage = n; refreshButtons(); }
+function refreshButtons() {
     var btns = document.querySelectorAll(".pagination button");
     for (var i = 0; i < btns.length; i++) { btns[i].classList.remove("active"); }
-    // 直接根据页码文本匹配按钮
-    for (var i = 0; i < btns.length; i++) {
-        if (btns[i].textContent.trim() === String(currentPage)) {
-            btns[i].classList.add("active");
-            break;
-        }
-    }
+    var target = document.querySelector(".pagination button:nth-child(" + (currentPage + 1) + ")");
+    if (target) target.classList.add("active");
 }
 </script>
 </body>
-</html>
+</html>'''
+
+with codecs.open(r'F:\26特殊教育\预约系统升级\deploy\appointments.html', 'w', 'utf-8') as f:
+    f.write(html)
+
+print("done")
