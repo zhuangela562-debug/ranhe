@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>然合教育 - 预约管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #F5F5F5;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1D9E75 0%, #25b885 100%);
+            color: white;
+            padding: 0 30px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .header .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            height: calc(100vh - 60px);
+            position: fixed;
+            top: 60px;
+            left: 0;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .menu-item:hover {
+            background: #f0f9f4;
+            color: #1D9E75;
+            border-left-color: #1D9E75;
+        }
+
+        .menu-item.active {
+            background: #f0f9f4;
+            color: #1D9E75;
+            border-left-color: #1D9E75;
+            font-weight: 600;
+        }
+
+        .menu-item .icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .menu-item .text {
+            font-size: 14px;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            margin-top: 60px;
+            padding: 30px;
+            min-height: calc(100vh - 60px);
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .page-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: #1D9E75;
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1D9E75 0%, #25b885 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(29, 158, 117, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #666;
+            border: 2px solid #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: #f9f9f9;
+            border-color: #1D9E75;
+            color: #1D9E75;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .filter-tab:hover {
+            color: #1D9E75;
+        }
+
+        .filter-tab.active {
+            color: #1D9E75;
+            border-bottom-color: #1D9E75;
+            font-weight: 600;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            text-align: left;
+            padding: 15px;
+            background: #f9f9f9;
+            color: #666;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.pending {
+            background: #FFF3E0;
+            color: #FF9800;
+        }
+
+        .status-badge.confirmed {
+            background: #E8F5E9;
+            color: #1D9E75;
+        }
+
+        .status-badge.cancelled {
+            background: #FFEBEE;
+            color: #f44336;
+        }
+
+        .status-badge.completed {
+            background: #E3F2FD;
+            color: #2196F3;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.view {
+            background: #E3F2FD;
+            color: #2196F3;
+        }
+
+        .action-btn.view:hover {
+            background: #2196F3;
+            color: white;
+        }
+
+        .action-btn.edit {
+            background: #FFF3E0;
+            color: #FF9800;
+        }
+
+        .action-btn.edit:hover {
+            background: #FF9800;
+            color: white;
+        }
+
+        .action-btn.delete {
+            background: #FFEBEE;
+            color: #f44336;
+        }
+
+        .action-btn.delete:hover {
+            background: #f44336;
+            color: white;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover {
+            background: #f9f9f9;
+            border-color: #1D9E75;
+            color: #1D9E75;
+        }
+
+        .pagination button.active {
+            background: #1D9E75;
+            color: white;
+            border-color: #1D9E75;
+        }
+
+        .pagination span {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #1D9E75;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><img src="logo.png" alt="然合教育" style="height: 36px; width: 36px; vertical-align: middle; margin-right: 8px; border-radius: 50%; object-fit: cover;"> 然合教育预约系统</h1>
+        <div class="user-info">
+            <span>欢迎，管理员</span>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <span class="icon">📊</span>
+                <span class="text">仪表板</span>
+            </a>
+            <a href="appointments.html" class="menu-item active">
+                <span class="icon">📅</span>
+                <span class="text">预约管理</span>
+            </a>
+            <a href="students.html" class="menu-item">
+                <span class="icon">👨‍👩‍👧‍👦</span>
+                <span class="text">学生管理</span>
+            </a>
+            <a href="teachers.html" class="menu-item">
+                <span class="icon">👩‍🏫</span>
+                <span class="text">教师管理</span>
+            </a>
+            <a href="courses.html" class="menu-item">
+                <span class="icon">📚</span>
+                <span class="text">课程管理</span>
+            </a>
+            <a href="reports.html" class="menu-item">
+                <span class="icon">📈</span>
+                <span class="text">报表统计</span>
+            </a>
+            <a href="settings.html" class="menu-item">
+                <span class="icon">⚙️</span>
+                <span class="text">系统设置</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h2 class="page-title">预约管理</h2>
+        <p class="page-subtitle">管理所有学生的预约信息</p>
+
+        <div class="toolbar">
+            <div class="search-box">
+                <input type="text" placeholder="搜索学生姓名、课程..." id="searchInput">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <span>➕</span>
+                    <span>新增预约</span>
+                </button>
+                <button class="btn btn-secondary">
+                    <span>📊</span>
+                    <span>导出数据</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="filterAppointments('all', this)">全部</button>
+            <button class="filter-tab" onclick="filterAppointments('pending', this)">待确认</button>
+            <button class="filter-tab" onclick="filterAppointments('confirmed', this)">已确认</button>
+            <button class="filter-tab" onclick="filterAppointments('completed', this)">已完成</button>
+            <button class="filter-tab" onclick="filterAppointments('cancelled', this)">已取消</button>
+        </div>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>预约编号</th>
+                        <th>学生姓名</th>
+                        <th>课程类型</th>
+                        <th>教师</th>
+                        <th>预约时间</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="appointmentsTable">
+                    <tr data-status="confirmed">
+                        <td>#AP20260605001</td>
+                        <td>张三</td>
+                        <td>ABA训练</td>
+                        <td>李老师</td>
+                        <td>2026-06-05 09:00</td>
+                        <td><span class="status-badge confirmed">已确认</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn view" onclick="viewAppointment(1)">查看</button>
+                                <button class="action-btn edit" onclick="editAppointment(1)">编辑</button>
+                                <button class="action-btn delete" onclick="deleteAppointment(1)">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr data-status="pending">
+                        <td>#AP20260605002</td>
+                        <td>李四</td>
+                        <td>NET自然情境教学</td>
+                        <td>王老师</td>
+                        <td>2026-06-05 10:00</td>
+                        <td><span class="status-badge pending">待确认</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn view" onclick="viewAppointment(2)">查看</button>
+                                <button class="action-btn edit" onclick="editAppointment(2)">编辑</button>
+                                <button class="action-btn delete" onclick="deleteAppointment(2)">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr data-status="confirmed">
+                        <td>#AP20260605003</td>
+                        <td>王五</td>
+                        <td>言语治疗</td>
+                        <td>张老师</td>
+                        <td>2026-06-05 14:00</td>
+                        <td><span class="status-badge confirmed">已确认</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn view" onclick="viewAppointment(3)">查看</button>
+                                <button class="action-btn edit" onclick="editAppointment(3)">编辑</button>
+                                <button class="action-btn delete" onclick="deleteAppointment(3)">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr data-status="cancelled">
+                        <td>#AP20260605004</td>
+                        <td>赵六</td>
+                        <td>ABA训练</td>
+                        <td>李老师</td>
+                        <td>2026-06-05 15:30</td>
+                        <td><span class="status-badge cancelled">已取消</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn view" onclick="viewAppointment(4)">查看</button>
+                                <button class="action-btn edit" onclick="editAppointment(4)">编辑</button>
+                                <button class="action-btn delete" onclick="deleteAppointment(4)">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr data-status="completed">
+                        <td>#AP20260604001</td>
+                        <td>孙七</td>
+                        <td>感统训练</td>
+                        <td>刘老师</td>
+                        <td>2026-06-04 09:00</td>
+                        <td><span class="status-badge completed">已完成</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn view" onclick="viewAppointment(5)">查看</button>
+                                <button class="action-btn edit" onclick="editAppointment(5)">编辑</button>
+                                <button class="action-btn delete" onclick="deleteAppointment(5)">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <button>上一页</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>3</button>
+            <span>...</span>
+            <button>10</button>
+            <button>下一页</button>
+        </div>
+    </div>
+
+    <!-- 新增/编辑预约模态框 -->
+    <div class="modal" id="appointmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">新增预约</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="appointmentForm">
+                    <div class="form-group">
+                        <label for="studentName">学生姓名</label>
+                        <input type="text" id="studentName" name="studentName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="courseType">课程类型</label>
+                        <select id="courseType" name="courseType" required>
+                            <option value="">请选择课程类型</option>
+                            <option value="aba">ABA训练</option>
+                            <option value="net">NET自然情境教学</option>
+                            <option value="speech">言语治疗</option>
+                            <option value="sensory">感统训练</option>
+                            <option value="social">社交技能训练</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="teacher">教师</label>
+                        <select id="teacher" name="teacher" required>
+                            <option value="">请选择教师</option>
+                            <option value="li">李老师</option>
+                            <option value="wang">王老师</option>
+                            <option value="zhang">张老师</option>
+                            <option value="liu">刘老师</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="appointmentDate">预约日期</label>
+                        <input type="date" id="appointmentDate" name="appointmentDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="appointmentTime">预约时间</label>
+                        <input type="time" id="appointmentTime" name="appointmentTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="notes">备注</label>
+                        <textarea id="notes" name="notes" placeholder="请输入备注信息..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveAppointment()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        // 搜索功能
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#appointmentsTable tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // 过滤预约
+        function filterAppointments(status, tabElement) {
+            // 更新标签样式
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            tabElement.classList.add('active');
+
+            // 过滤表格行
+            const rows = document.querySelectorAll('#appointmentsTable tr');
+            rows.forEach(row => {
+                if (status === 'all') {
+                    row.style.display = '';
+                } else {
+                    const rowStatus = row.getAttribute('data-status');
+                    if (rowStatus === status) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // 打开新增模态框
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '新增预约';
+            document.getElementById('appointmentForm').reset();
+            document.getElementById('appointmentModal').classList.add('show');
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('appointmentModal').classList.remove('show');
+        }
+
+        // 查看预约详情
+        function viewAppointment(id) {
+            alert('查看预约详情，ID: ' + id);
+            // 在实际应用中，这里会打开一个只读的模态框显示详情
+        }
+
+        // 编辑预约
+        function editAppointment(id) {
+            document.getElementById('modalTitle').textContent = '编辑预约';
+            // 在实际应用中，这里会从服务器加载数据并填充表单
+            document.getElementById('appointmentModal').classList.add('show');
+        }
+
+        // 删除预约
+        function deleteAppointment(id) {
+            if (confirm('确定要删除这个预约记录吗？')) {
+                alert('删除预约，ID: ' + id);
+                // 在实际应用中，这里会发送删除请求到服务器
+            }
+        }
+
+        // 保存预约
+        function saveAppointment() {
+            const form = document.getElementById('appointmentForm');
+            if (form.checkValidity()) {
+                alert('保存成功！');
+                closeModal();
+                // 在实际应用中，这里会发送保存请求到服务器
+            } else {
+                alert('请填写所有必填项！');
+            }
+        }
+
+        // 点击模态框外部关闭
+        document.getElementById('appointmentModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

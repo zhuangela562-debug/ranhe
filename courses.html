@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>然合教育 - 课程管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #F5F5F5; color: #333; }
+        .header { background: linear-gradient(135deg, #1D9E75 0%, #25b885 100%); color: white; padding: 0 30px; height: 60px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+        .header h1 { font-size: 20px; font-weight: 600; display: flex; align-items: center; }
+        .header-logo { height: 36px; width: 36px; vertical-align: middle; margin-right: 10px; border-radius: 50%; object-fit: cover; }
+        .header .user-info { display: flex; align-items: center; gap: 10px; }
+        .header .logout-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background 0.3s; }
+        .header .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .sidebar { width: 250px; background: white; height: calc(100vh - 60px); position: fixed; top: 60px; left: 0; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
+        .sidebar-menu { padding: 20px 0; }
+        .menu-item { padding: 15px 25px; display: flex; align-items: center; gap: 12px; color: #666; text-decoration: none; transition: all 0.3s; cursor: pointer; border-left: 3px solid transparent; }
+        .menu-item:hover { background: #f0f9f4; color: #1D9E75; border-left-color: #1D9E75; }
+        .menu-item.active { background: #f0f9f4; color: #1D9E75; border-left-color: #1D9E75; font-weight: 600; }
+        .menu-item .icon { font-size: 20px; width: 24px; text-align: center; }
+        .main-content { margin-left: 250px; margin-top: 60px; padding: 30px; }
+        .page-title { font-size: 24px; font-weight: 600; margin-bottom: 5px; }
+        .page-subtitle { color: #666; margin-bottom: 25px; font-size: 14px; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, #1D9E75 0%, #25b885 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(29,158,117,0.3); }
+
+        .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .course-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: transform 0.3s, box-shadow 0.3s; }
+        .course-card:hover { transform: translateY(-5px); box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .course-banner { height: 100px; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+        .course-body { padding: 20px; }
+        .course-body h3 { font-size: 16px; margin-bottom: 8px; color: #333; }
+        .course-body .desc { font-size: 13px; color: #999; margin-bottom: 12px; line-height: 1.5; }
+        .course-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 15px; }
+        .tag { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .course-meta { display: flex; justify-content: space-between; font-size: 12px; color: #666; border-top: 1px solid #eee; padding-top: 12px; }
+        .meta-item { display: flex; align-items: center; gap: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><img src="logo.png" alt="然合教育" class="header-logo">然合教育预约系统</h1>
+        <div class="user-info"><span>欢迎，管理员</span><button class="logout-btn" onclick="logout()">退出登录</button></div>
+    </div>
+    <div class="sidebar">
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item"><span class="icon">📊</span> 仪表板</a>
+            <a href="appointments.html" class="menu-item"><span class="icon">📅</span> 预约管理</a>
+            <a href="students.html" class="menu-item"><span class="icon">👨‍👩‍👧‍👦</span> 学生管理</a>
+            <a href="teachers.html" class="menu-item"><span class="icon">👩‍🏫</span> 教师管理</a>
+            <a href="courses.html" class="menu-item active"><span class="icon">📚</span> 课程管理</a>
+            <a href="reports.html" class="menu-item"><span class="icon">📈</span> 报表统计</a>
+            <a href="settings.html" class="menu-item"><span class="icon">⚙️</span> 系统设置</a>
+        </div>
+    </div>
+    <div class="main-content">
+        <h2 class="page-title">课程管理</h2>
+        <p class="page-subtitle">管理融合教育与康复训练课程体系</p>
+        <div class="toolbar">
+            <div></div>
+            <button class="btn btn-primary">➕ 新增课程</button>
+        </div>
+        <div class="courses-grid">
+            <div class="course-card">
+                <div class="course-banner" style="background: linear-gradient(135deg, #E8F5E9, #C8E6C9); color: #1D9E75;">🧩</div>
+                <div class="course-body">
+                    <h3>ABA行为分析训练</h3>
+                    <p class="desc">基于应用行为分析原理，一对一强化正向行为，减少问题行为，提升学习能力。</p>
+                    <div class="course-tags"><span class="tag" style="background:#E8F5E9;color:#1D9E75;">1对1</span><span class="tag" style="background:#FFF3E0;color:#FF9800;">核心课程</span></div>
+                    <div class="course-meta"><span class="meta-item">📅 60分钟/节</span><span class="meta-item">👩‍🏫 李老师</span><span class="meta-item">👨‍👩‍👧‍👦 12人</span></div>
+                </div>
+            </div>
+            <div class="course-card">
+                <div class="course-banner" style="background: linear-gradient(135deg, #FFF3E0, #FFE0B2); color: #FF9800;">🌳</div>
+                <div class="course-body">
+                    <h3>NET自然情境教学</h3>
+                    <p class="desc">在真实幼儿园环境中，自然引导社交互动和语言发展，实现融合成长。</p>
+                    <div class="course-tags"><span class="tag" style="background:#E3F2FD;color:#2196F3;">小组课</span><span class="tag" style="background:#FFF3E0;color:#FF9800;">核心课程</span></div>
+                    <div class="course-meta"><span class="meta-item">📅 90分钟/节</span><span class="meta-item">👩‍🏫 王老师</span><span class="meta-item">👨‍👩‍👧‍👦 8人</span></div>
+                </div>
+            </div>
+            <div class="course-card">
+                <div class="course-banner" style="background: linear-gradient(135deg, #E3F2FD, #BBDEFB); color: #2196F3;">🗣️</div>
+                <div class="course-body">
+                    <h3>言语治疗</h3>
+                    <p class="desc">针对语言发育迟缓、构音障碍等，进行专业评估和个性化言语康复训练。</p>
+                    <div class="course-tags"><span class="tag" style="background:#E8F5E9;color:#1D9E75;">1对1</span><span class="tag" style="background:#F3E5F5;color:#9C27B0;">康复类</span></div>
+                    <div class="course-meta"><span class="meta-item">📅 45分钟/节</span><span class="meta-item">👩‍🏫 张老师</span><span class="meta-item">👨‍👩‍👧‍👦 10人</span></div>
+                </div>
+            </div>
+            <div class="course-card">
+                <div class="course-banner" style="background: linear-gradient(135deg, #F3E5F5, #E1BEE7); color: #9C27B0;">⚽</div>
+                <div class="course-body">
+                    <h3>感统训练</h3>
+                    <p class="desc">通过专业感统器材和游戏化活动，改善感觉统合失调，提升身体协调能力。</p>
+                    <div class="course-tags"><span class="tag" style="background:#E8F5E9;color:#1D9E75;">1对1</span><span class="tag" style="background:#F3E5F5;color:#9C27B0;">康复类</span></div>
+                    <div class="course-meta"><span class="meta-item">📅 50分钟/节</span><span class="meta-item">👩‍🏫 刘老师</span><span class="meta-item">👨‍👩‍👧‍👦 6人</span></div>
+                </div>
+            </div>
+            <div class="course-card">
+                <div class="course-banner" style="background: linear-gradient(135deg, #FCE4EC, #F8BBD0); color: #E91E63;">🤝</div>
+                <div class="course-body">
+                    <h3>社交技能训练</h3>
+                    <p class="desc">通过结构化社交场景模拟，教授社交规则、情绪识别和同伴互动技能。</p>
+                    <div class="course-tags"><span class="tag" style="background:#E3F2FD;color:#2196F3;">小组课</span><span class="tag" style="background:#E0E0E0;color:#666;">选修</span></div>
+                    <div class="course-meta"><span class="meta-item">📅 60分钟/节</span><span class="meta-item">👩‍🏫 李老师</span><span class="meta-item">👨‍👩‍👧‍👦 5人</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function logout() { if (confirm('确定要退出登录吗？')) { window.location.href = 'login.html'; } }
+    </script>
+</body>
+</html>

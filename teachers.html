@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>然合教育 - 教师管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #F5F5F5; color: #333; }
+
+        .header { background: linear-gradient(135deg, #1D9E75 0%, #25b885 100%); color: white; padding: 0 30px; height: 60px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+        .header h1 { font-size: 20px; font-weight: 600; display: flex; align-items: center; }
+        .header-logo { height: 36px; width: 36px; vertical-align: middle; margin-right: 10px; border-radius: 50%; object-fit: cover; }
+        .header .user-info { display: flex; align-items: center; gap: 10px; }
+        .header .user-info span { font-size: 14px; }
+        .header .logout-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: background 0.3s; }
+        .header .logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+        .sidebar { width: 250px; background: white; height: calc(100vh - 60px); position: fixed; top: 60px; left: 0; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
+        .sidebar-menu { padding: 20px 0; }
+        .menu-item { padding: 15px 25px; display: flex; align-items: center; gap: 12px; color: #666; text-decoration: none; transition: all 0.3s; cursor: pointer; border-left: 3px solid transparent; }
+        .menu-item:hover { background: #f0f9f4; color: #1D9E75; border-left-color: #1D9E75; }
+        .menu-item.active { background: #f0f9f4; color: #1D9E75; border-left-color: #1D9E75; font-weight: 600; }
+        .menu-item .icon { font-size: 20px; width: 24px; text-align: center; }
+
+        .main-content { margin-left: 250px; margin-top: 60px; padding: 30px; }
+        .page-title { font-size: 24px; color: #333; margin-bottom: 5px; font-weight: 600; }
+        .page-subtitle { color: #666; margin-bottom: 25px; font-size: 14px; }
+
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; }
+        .search-box { flex: 1; max-width: 400px; position: relative; }
+        .search-box input { width: 100%; padding: 10px 15px 10px 40px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.3s; }
+        .search-box input:focus { border-color: #1D9E75; }
+        .search-box::before { content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, #1D9E75 0%, #25b885 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(29,158,117,0.3); }
+
+        .teachers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .teacher-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: transform 0.3s, box-shadow 0.3s; }
+        .teacher-card:hover { transform: translateY(-5px); box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .teacher-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .teacher-avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #1D9E75, #25b885); display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; font-weight: 600; }
+        .teacher-info h3 { font-size: 16px; color: #333; margin-bottom: 4px; }
+        .teacher-info .role { font-size: 12px; color: #1D9E75; background: #f0f9f4; padding: 3px 10px; border-radius: 12px; display: inline-block; }
+        .teacher-details { border-top: 1px solid #eee; padding-top: 15px; }
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+        .detail-label { color: #999; }
+        .detail-value { color: #333; font-weight: 500; }
+        .teacher-actions { display: flex; gap: 8px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
+        .action-btn { flex: 1; padding: 8px; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.3s; text-align: center; }
+        .action-btn.view { background: #E3F2FD; color: #2196F3; }
+        .action-btn.view:hover { background: #2196F3; color: white; }
+        .action-btn.edit { background: #FFF3E0; color: #FF9800; }
+        .action-btn.edit:hover { background: #FF9800; color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><img src="logo.png" alt="然合教育" class="header-logo">然合教育预约系统</h1>
+        <div class="user-info">
+            <span>欢迎，管理员</span>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item"><span class="icon">📊</span> 仪表板</a>
+            <a href="appointments.html" class="menu-item"><span class="icon">📅</span> 预约管理</a>
+            <a href="students.html" class="menu-item"><span class="icon">👨‍👩‍👧‍👦</span> 学生管理</a>
+            <a href="teachers.html" class="menu-item active"><span class="icon">👩‍🏫</span> 教师管理</a>
+            <a href="courses.html" class="menu-item"><span class="icon">📚</span> 课程管理</a>
+            <a href="reports.html" class="menu-item"><span class="icon">📈</span> 报表统计</a>
+            <a href="settings.html" class="menu-item"><span class="icon">⚙️</span> 系统设置</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h2 class="page-title">教师管理</h2>
+        <p class="page-subtitle">管理融合教育指导教师与特教康复师</p>
+
+        <div class="toolbar">
+            <div class="search-box"><input type="text" placeholder="搜索教师姓名、职称..."></div>
+            <button class="btn btn-primary">➕ 新增教师</button>
+        </div>
+
+        <div class="teachers-grid">
+            <div class="teacher-card">
+                <div class="teacher-header">
+                    <div class="teacher-avatar">李</div>
+                    <div class="teacher-info">
+                        <h3>李老师</h3>
+                        <span class="role">ABA行为分析师</span>
+                    </div>
+                </div>
+                <div class="teacher-details">
+                    <div class="detail-row"><span class="detail-label">资质认证</span><span class="detail-value">BCBA国际认证</span></div>
+                    <div class="detail-row"><span class="detail-label">教学年限</span><span class="detail-value">8年</span></div>
+                    <div class="detail-row"><span class="detail-label">当前学生</span><span class="detail-value">12人</span></div>
+                    <div class="detail-row"><span class="detail-label">状态</span><span class="detail-value" style="color:#1D9E75;">● 在岗</span></div>
+                </div>
+                <div class="teacher-actions">
+                    <button class="action-btn view">查看详情</button>
+                    <button class="action-btn edit">编辑信息</button>
+                </div>
+            </div>
+
+            <div class="teacher-card">
+                <div class="teacher-header">
+                    <div class="teacher-avatar">王</div>
+                    <div class="teacher-info">
+                        <h3>王老师</h3>
+                        <span class="role">NET融合指导员</span>
+                    </div>
+                </div>
+                <div class="teacher-details">
+                    <div class="detail-row"><span class="detail-label">资质认证</span><span class="detail-value">幼儿园教师+ABA培训</span></div>
+                    <div class="detail-row"><span class="detail-label">教学年限</span><span class="detail-value">5年</span></div>
+                    <div class="detail-row"><span class="detail-label">当前学生</span><span class="detail-value">8人</span></div>
+                    <div class="detail-row"><span class="detail-label">状态</span><span class="detail-value" style="color:#1D9E75;">● 在岗</span></div>
+                </div>
+                <div class="teacher-actions">
+                    <button class="action-btn view">查看详情</button>
+                    <button class="action-btn edit">编辑信息</button>
+                </div>
+            </div>
+
+            <div class="teacher-card">
+                <div class="teacher-header">
+                    <div class="teacher-avatar">张</div>
+                    <div class="teacher-info">
+                        <h3>张老师</h3>
+                        <span class="role">言语治疗师</span>
+                    </div>
+                </div>
+                <div class="teacher-details">
+                    <div class="detail-row"><span class="detail-label">资质认证</span><span class="detail-value">SLP言语病理学认证</span></div>
+                    <div class="detail-row"><span class="detail-label">教学年限</span><span class="detail-value">6年</span></div>
+                    <div class="detail-row"><span class="detail-label">当前学生</span><span class="detail-value">10人</span></div>
+                    <div class="detail-row"><span class="detail-label">状态</span><span class="detail-value" style="color:#1D9E75;">● 在岗</span></div>
+                </div>
+                <div class="teacher-actions">
+                    <button class="action-btn view">查看详情</button>
+                    <button class="action-btn edit">编辑信息</button>
+                </div>
+            </div>
+
+            <div class="teacher-card">
+                <div class="teacher-header">
+                    <div class="teacher-avatar">刘</div>
+                    <div class="teacher-info">
+                        <h3>刘老师</h3>
+                        <span class="role">感统训练师</span>
+                    </div>
+                </div>
+                <div class="teacher-details">
+                    <div class="detail-row"><span class="detail-label">资质认证</span><span class="detail-value">OT作业治疗认证</span></div>
+                    <div class="detail-row"><span class="detail-label">教学年限</span><span class="detail-value">4年</span></div>
+                    <div class="detail-row"><span class="detail-label">当前学生</span><span class="detail-value">6人</span></div>
+                    <div class="detail-row"><span class="detail-label">状态</span><span class="detail-value" style="color:#FF9800;">● 休假</span></div>
+                </div>
+                <div class="teacher-actions">
+                    <button class="action-btn view">查看详情</button>
+                    <button class="action-btn edit">编辑信息</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function logout() { if (confirm('确定要退出登录吗？')) { window.location.href = 'login.html'; } }
+    </script>
+</body>
+</html>
