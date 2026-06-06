@@ -217,7 +217,72 @@ function onSourceChange() {
     var sel = document.getElementById("f_source");
     document.getElementById("f_customGroup").style.display = (sel.value === "__custom__") ? "" : "none";
 }
-function saveAppt() { alert("保存成功（演示）"); closeModal(); }
+function saveAppt() {
+    var student = document.getElementById("f_student").value.trim();
+    var course = document.getElementById("f_course").value;
+    var teacher = document.getElementById("f_teacher").value;
+    var date = document.getElementById("f_date").value;
+    var time = document.getElementById("f_time").value;
+    var source = document.getElementById("f_source").value;
+    var customSource = document.getElementById("f_customSource").value.trim();
+
+    if (!student) { alert("请输入学生姓名"); return; }
+    if (!course) { alert("请选择课程类型"); return; }
+    if (!teacher) { alert("请选择教师"); return; }
+    if (!date) { alert("请选择预约日期"); return; }
+    if (!time) { alert("请选择预约时间"); return; }
+    if (!source) { alert("请选择用户来源"); return; }
+
+    var finalSource = (source === "__custom__") ? customSource : source;
+    if (source === "__custom__" && !customSource) { alert("请输入自定义来源名称"); return; }
+
+    // 生成预约编号
+    var now = new Date();
+    var seq = document.querySelectorAll("#apptTable tr").length + 1;
+    var id = "#AP" + now.getFullYear() +
+        String(now.getMonth()+1).padStart(2,"0") +
+        String(now.getDate()).padStart(2,"0") +
+        String(seq).padStart(3,"0");
+
+    // 拼接时间
+    var fullTime = date + " " + time;
+
+    // 创建新行
+    var row = document.createElement("tr");
+    row.setAttribute("data-status", "pending");
+    row.innerHTML =
+        "<td>" + id + "</td>" +
+        "<td>" + student + "</td>" +
+        "<td>" + course + "</td>" +
+        "<td>" + teacher + "</td>" +
+        "<td>" + fullTime + "</td>" +
+        "<td>" + finalSource + "</td>" +
+        "<td><span class=\"status-badge pending\">待确认</span></td>" +
+        "<td><div class=\"action-buttons\">" +
+        "<button class=\"action-btn view\" onclick=\"openModal('view'," + seq + ")\">查看</button>" +
+        "<button class=\"action-btn edit\" onclick=\"openModal('edit'," + seq + ")\">编辑</button>" +
+        "<button class=\"action-btn delete\" onclick=\"deleteApptRow(this)\">删除</button>" +
+        "</div></td>";
+
+    document.getElementById("apptTable").appendChild(row);
+
+    // 清空表单并关闭弹窗
+    document.getElementById("f_student").value = "";
+    document.getElementById("f_course").value = "";
+    document.getElementById("f_teacher").value = "";
+    document.getElementById("f_date").value = "";
+    document.getElementById("f_time").value = "";
+    document.getElementById("f_source").value = "";
+    document.getElementById("f_customSource").value = "";
+    document.getElementById("f_customGroup").style.display = "none";
+    closeModal();
+}
+
+function deleteApptRow(btn) {
+    if (confirm("确定删除这条预约？")) {
+        btn.closest("tr").remove();
+    }
+}
 function deleteAppt(id) { if(confirm("确定删除？")) alert("删除成功（演示）"); }
 function logout() { if(confirm("确定退出？")) window.location.href = "login.html"; }
 function filterStatus(s, btn) {
